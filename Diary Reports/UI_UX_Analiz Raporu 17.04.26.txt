@@ -1,0 +1,662 @@
+# Diary Mobil Uygulama UI/UX Analiz Raporu
+
+## Kapsam
+
+Bu rapor, mevcut Flutter uygulamasinin `lib/` altindaki ana ekranlari, 
+tema yapisini ve widget hiyerarsisini inceleyerek hazirlandi. 
+Odak noktasi:
+
+- mevcut arayuzun guclu yonleri
+- UI iyilestirme alanlari
+- eklenebilecek animasyonlar
+- onceliklendirilmis bir uygulama yol haritasi
+
+Incelenen ana alanlar:
+
+- `lib/core/theme/app_theme.dart`
+- `lib/features/entries/presentation/screens/home_screen.dart`
+- `lib/features/entries/presentation/screens/editor_screen.dart`
+- `lib/features/entries/presentation/widgets/entry_card.dart`
+- `lib/features/entries/presentation/widgets/calendar_view.dart`
+- `lib/features/entries/presentation/widgets/statistics_view.dart`
+- `lib/features/settings/presentation/screens/settings_screen.dart`
+
+## Genel Durum Ozeti
+
+Uygulama islevsel olarak saglam bir temel uzerine kurulmus. 
+Liste, takvim, istatistik, editor, ses kaydi ve konum/hava durumu gibi gunluk uygulamasi icin degerli moduller mevcut. 
+Ayrica editor ekraninda "defter" metaforunun hedeflenmesi, urunun siradan bir CRUD uygulamasi olmamasini saglayan guclu bir fikir.
+
+Bununla birlikte arayuz dili su an parca parca tasarlanmis gorunuyor:
+
+- ana ekran oldukca standart Material 3 hissi veriyor
+- editor ekrani daha karakterli ve ozel tasarlanmis
+- istatistik ve ayarlar ekranlari fonksiyonel ama gorsel hiyerarsi olarak daha zayif
+- ekran gecisleri ve durum degisimleri buyuk olcude animasyonsuz
+
+Sonuc olarak uygulamanin temel problemi "kotu tasarim" degil; asil problem ortak bir gorsel dilin tum ekranlara esit dagilmamasi.
+
+## Mevcut Guclu Yonler
+
+### 1. Editor ekrani guclu bir marka fikrine sahip
+
+`editor_screen.dart` icindeki cizgili kagit ve binder tasarimi uygulamaya karakter kazandiriyor. 
+Bu, UI tarafinda en degerli fikirlerden biri.
+
+### 2. Bilgi mimarisi temiz
+
+Ana akis kolay anlasiliyor:
+
+- Liste
+- Takvim
+- Istatistik
+- Ayarlar
+- Yeni kayit / duzenleme
+
+Kullanicinin neyi nerede bulacagi genel olarak acik.
+
+### 3. Kullanicinin gunluk tutma motivasyonunu artiracak veri katmanlari var
+
+Ruh hali, etiket, ses kaydi, konum ve hava durumu gibi alanlar 
+tasarimla iyi desteklenirse uygulamayi daha "hatira odakli" ve duygusal hale getirebilir.
+
+### 4. Tema ozellestirme altyapisi var
+
+Tema modu, ana renk ve font boyutu ayarlanabiliyor. 
+Bu, sonradan daha rafine bir design system kurmak icin iyi bir baslangic.
+
+## Ana UI Problemleri
+
+### 1. Ekranlar arasinda gorsel tutarlilik eksik
+
+Editor ekraninda ozel bir atmosfer varken ana ekran, takvim, istatistik ve ayarlar 
+daha varsayilan Flutter bilesenleri gibi gorunuyor. Bu da urunun kimligini zayiflatiyor.
+
+### 2. Gorsel hiyerarsi zayif
+
+Ozellikle `home_screen.dart` ve `settings_screen.dart` tarafinda:
+
+- baslik alanlari sade
+- bosluk sistemi tutarsiz
+- kartlar ve filtreler bir "premium bilgi katmani" hissi vermiyor
+- birincil eylem ile ikincil eylemler arasindaki fark her zaman net degil
+
+### 3. Durum gecisleri sert
+
+Sekme degisimleri, arama ac/kapat, bos durumdan dolu duruma gecis, kaydetme ve liste yenilenmesi gibi 
+aksiyonlar neredeyse tamamen ani gerceklesiyor.
+
+### 4. Mikro etkilesimler az
+
+Bu tip duygusal urunlerde su an eksik kalan sey, kullaniciya "uygulama canli" hissi veren detaylar:
+
+- chip secimi
+- kart basimi
+- kayit eklendiginde listeye yumusak giris
+- takvim gun secimi
+- istatistik grafiklerinin yuklenme animasyonu
+
+### 5. Tipografi karakteri sinirli
+
+Tema yapisinda boyutlar olcekleniyor ama tipografik rol ayrimi zayif. 
+Editor icinde serif benzeri bir his hedeflenmis, ancak global tasarim dili ile yeterince butunlesmiyor.
+
+## Ekran Bazli Inceleme ve Oneriler
+--------------------------------------------------------------------------------------------------------------------------------
+## 1. Ana Ekran (`home_screen.dart`)
+
+### Mevcut durum
+
+Ana ekranin iskeleti temiz:
+
+- ustte AppBar
+- yatay ruh hali filtreleri
+- gunluk kart listesi
+- altta NavigationBar
+- liste sekmesinde FAB
+
+Fakat ekran su an bir "giris paneli" gibi calisiyor; duygusal bir gunluk uygulamasi hissi daha az.
+
+### UI iyilestirme onerileri
+
+#### 1. Ust alan yeniden tasarlanabilir
+
+Su an sadece "Gunlugum" basligi var. Burasi daha zengin bir hero alanina donusebilir:
+
+- bugunun tarihi
+- kisa bir karsilama metni
+- toplam kayit veya son yazma serisi
+- mini ruh hali ozeti
+
+Ornek fikir:
+
+- buyuk baslik: "Bugun nasil hissediyorsun?"
+- alt satir: "17 Nisan Cuma"
+- sag ustte ayarlar butonu
+
+Bu tek degisiklik bile uygulamanin premium algisini ciddi sekilde artirir.
+
+#### 2. Ruh hali filtreleri daha anlamli hale getirilebilir
+
+Mevcut `FilterChip` yapiyor ama siradan gorunuyor. Bunun yerine:
+
+- daha buyuk pill butonlar
+- secili olanda hafif renkli arka plan + yukseltme
+- secimde yumusak scale animasyonu
+- mood'a gore hafif ton farklari
+
+#### 3. Liste kartlari daha bilgi zengini olabilir
+
+`EntryCard` su an baslik, emoji, icerik, tarih, ilk etiket ve sil aksiyonu gosteriyor. 
+Kartlar daha guclu hale getirilebilir:
+
+- tarih ustte ince bir meta satiri olarak alinabilir
+- ruh hali emoji yerine renkli mood badge kullanilabilir
+- konum/hava bilgisi kartta daha "postcard" benzeri sunulabilir
+- etiketlerde sadece ilk etiket yerine `+2` gibi sayisal ozet eklenebilir
+
+#### 4. Bos durum daha yonlendirici olmali
+
+Su an bos durumda ikon + metin var. Bu alan:
+
+- illustre edilmis bir bos durum
+- "ilk anini yaz" cagrisi
+- neden gunluk tutulmali tipinde kisa ilham metni
+
+ile daha etkili olabilir.
+
+#### 5. Arama modu daha rafine hale getirilebilir
+
+Arama acildiginda AppBar icerigi sert sekilde degisiyor. Bunun yerine:
+
+- `AnimatedSwitcher`
+- yatay genisleyen search field
+- arama aktifken filtre chiplerinin hafif solmasi
+
+kullanilabilir.
+
+### Ana ekran icin animasyon onerileri
+
+- Liste ilk acilista kartlar 30-40 ms stagger ile asagidan hafif kayarak gelsin
+- Mood chip secildiginde 0.96 -> 1.0 scale ve renk yumusamasi olsun
+- Arama ac/kapat `AnimatedSwitcher` + fade/size transition ile olsun
+- Yeni kayit eklendikten sonra ilgili kart listeye fade + slide ile girsin
+- FAB scroll asagida iken kuculsun, yukari cikinca tekrar genislesin
+
+------------------------------------------------------------------------------------------------------------------------------
+
+## 2. Kayit Karti (`entry_card.dart`)
+
+### Mevcut durum
+
+Kart temiz ama klasik. Islevsel olmasina ragmen duygusal bir urunun "hatira karti" hissine tam ulasmiyor.
+
+### UI iyilestirme onerileri
+
+#### 1. Kart semantigi guclendirilmeli
+
+Kart su an tek blok gibi. Asagidaki katmanlasma daha iyi olabilir:
+
+- ust meta: tarih + konum
+- ana satir: baslik + ruh hali
+- govde: icerik preview
+- alt satir: etiketler + aksiyonlar
+
+#### 2. Sil aksiyonu daha geri planda olmali
+
+Kart uzerindeki gorunur sil ikonu, esas odagi zayiflatabilir. Alternatif:
+
+- trailing more menu
+- long press action sheet
+- swipe to delete + confirm
+
+#### 3. Kartlar arasinda daha guclu ritim kurulabilir
+
+Tum kartlar birbirine benziyor. Asagidaki varyasyonlar faydali olur:
+
+- mood'a gore sol kenar accent line
+- ses kaydi varsa ufak waveform/mic badge
+- konum varsa harita pini badge
+- hava durumu varsa hava ikonlu meta pill
+
+### Kart icin animasyon onerileri
+
+- Basildiginda hafif press animation
+- Silme onayindan sonra shrink + fade out
+- Kart acilirken hero benzeri baslik gecisi
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+## 3. Takvim Ekrani (`calendar_view.dart`)
+
+### Mevcut durum
+
+Takvim bolumu mantikli. Marker mantigi da kullanisli. Ancak ekran su an daha cok utility panel gibi duruyor.
+
+### UI iyilestirme onerileri
+
+#### 1. Takvim kapsayici alani daha etkileyici olabilir
+
+Takvim kutusu su an duz bir kart hissi veriyor. Burada:
+
+- ustte ay ozet basligi
+- "bu ay kac kayit" bilgisi
+- ortalama ruh hali ozeti
+
+eklenirse ekran daha anlamli olur.
+
+#### 2. Marker sistemi daha acik hale getirilebilir
+
+Su an uc noktaya kadar renkli marker gosteriliyor fakat kullanici bu renklerin anlamini ilk bakista cozemez. Cozum:
+
+- ustte mini legend
+- secili gunde mood dagilimi ozet pill'leri
+
+#### 3. Secili gun bolumu daha kartlasmis olabilir
+
+Tarih ve kayit sayisi satiri su an minimal. Bu alan:
+
+- baslik karti
+- secili gunun hissi
+- "bu gune yaz" CTA
+
+ile daha guclu hale gelebilir.
+
+#### 4. Alt ekle butonu tasarimsal olarak ekranla butunlesmeli
+
+Sabit `FilledButton` mantikli ama daha ozgun bir floating composer bar tasarlanabilir.
+
+### Takvim icin animasyon onerileri
+
+- Ay degisiminde takvim yatay slide ile gecsin
+- Gun secildiginde secili tarih ozeti cross-fade ile guncellensin
+- Marker'lar ekranda belirdiginde minik scale-in yapsin
+- Alttaki secili gun kayit listesi `AnimatedSwitcher` ile degissin
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+## 4. Istatistik Ekrani (`statistics_view.dart`)
+
+### Mevcut durum
+
+Fonksiyonel olarak iyi; toplam kayit, streak, mood dagilimi ve populer etiketler gosteriliyor. 
+Ancak ekran gorsel olarak dashboard etkisini tam vermiyor.
+
+### UI iyilestirme onerileri
+
+#### 1. Ustte bir ozet bandi olmali
+
+Su an kartlar dogrudan basliyor. Ekranin basina su eklenebilir:
+
+- "Yazma aliskanligin"
+- son 30 gun analizi
+- mini icgoru cumlesi
+
+Ornek:
+
+"En cok mutlu hissettigin gunler hafta sonu gorunuyor."
+
+#### 2. Kart sisteminde ortak stil dili kurulmali
+
+Summary card, pie chart card ve tag card farkli seviyelerde stilize. Ortak bir tasarim dili icin:
+
+- ayni radius sistemi
+- ayni ic bosluklar
+- ayni baslik hiyerarsisi
+- daha kontrollu renk kullanimi
+
+onerilir.
+
+#### 3. Grafik anlatimsal hale gelmeli
+
+Pasta grafigi tek basina veri veriyor ama icgoru vermiyor. Altina kucuk aciklama cizgileri eklenebilir:
+
+- en baskin ruh hali
+- en az gorulen ruh hali
+- son 7 gun trendi
+
+#### 4. Etiket bolumu daha modernlestirilebilir
+
+Linear progress bar yerine:
+
+- yatay capsule bars
+- badge cloud
+- ranked chips
+
+gibi daha sicak bir sunum dusunulebilir.
+
+### Istatistik icin animasyon onerileri
+
+- Summary card sayilari count-up ile gelsin
+- Pie chart bolumleri 0'dan acilarak olussun
+- Progress cizgileri soldan dolsun
+- Sayfa ilk acilista bolumler kademeli fade-up ile girsin
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+## 5. Editor Ekrani (`editor_screen.dart`)
+
+### Mevcut durum
+
+Bu ekran urunun en ozel alani. Defter metaforu, binder painter ve cizgili kagit mantigi cok iyi bir temel sunuyor.
+
+Ancak bu ekranda da bazi iyilestirme firsatlari var:
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+- ekran uzun ve yogun
+- kaydet aksiyonu dogru ama duygusal geri bildirim az
+- ses, etiket, konum bolumleri editorun estetik seviyesinin biraz gerisinde
+- toolbar sabit ama daha akici hissettirebilir
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+### UI iyilestirme onerileri
+
+#### 1. Baslik bolumu daha editorial olabilir
+
+Su an tarih ve baslik alani iyi ama daha rafine olabilir:
+
+- tarih satiri ile baslik arasinda biraz daha nefes
+- duzenleme modunda "son guncelleme" bilgisi
+- baslik alaninda focus olunca daha belirgin gorsel vurgu
+
+#### 2. Editor ve form alanlari arasinda hiyerarsi kurulmali
+
+Metin editoru cok karakterli, alt moduller daha standart kaliyor. Bunu kapatmak icin:
+
+- ruh hali, etiket, ses, konum bolumleri ayri "defter eki" kartlari gibi tasarlanabilir
+- veya accordion/expandable sections kullanilabilir
+
+#### 3. Mood secimi cok daha duygusal hale getirilebilir
+
+Su an text chip seklinde. Daha iyi secenek:
+
+- buyuk emoji kartlari
+- secildiginde glow / border / elevation
+- secimden sonra kisa etiket metni: "Bugun enerjik gorunuyorsun"
+
+#### 4. Ses kaydi bolumu daha modernlestirilmeli
+
+Ses kaydi deneyimi burada buyuk bir firsat:
+
+- recording sirasinda nabiz gibi animasyon
+- sure sayaci
+- kayit sonrasi mini waveform
+- oynatilirken progress gorunumu
+
+#### 5. Konum ve hava durumu bolumu daha "hatira" odakli sunulmali
+
+Su an buton veya yatay bilgi kutusu olarak calisiyor. Alternatif:
+
+- hava durumu rozetleri
+- "Istanbul, 18 derece, hafif bulutlu" postcard satiri
+- istenirse kart uzerinde minik hava ikonu
+
+#### 6. Toolbar gorsel olarak daha rafine olabilir
+
+Quill toolbar faydali ama biraz utilitarian kaliyor. Daha iyi bir deneyim icin:
+
+- blur hissi veren yuzey
+- ust sinir cizgisi yerine hafif yukselen panel
+- secili formatta daha guclu state gostergesi
+
+### Editor icin animasyon onerileri
+
+- Ekran acilisinda sayfa hafif asagidan gelip otursun
+- Baslik ve tarih alanlari sirali fade-up ile gelsin
+- Mood seciminde soft spring ile secim animasyonu olsun
+- Ses kaydinda record butonu pulse yapsin
+- Konum yuklenirken skeleton/pill shimmer kullanilsin
+- Kaydetme sirasinda buton progress state'e gecsin, basariliysa yumusak success feedback gosterilsin
+
+--------------------------------------------------------------------------------------------------------------------------------
+
+## 6. Ayarlar Ekrani (`settings_screen.dart`)
+
+### Mevcut durum
+
+Fonksiyonel ama su an gelistirici ayarlari ekrani gibi duruyor. Uygulamanin duygusal tasarim diliyle ayni seviyede degil.
+
+### UI iyilestirme onerileri
+
+#### 1. Ayarlar sayfasi bolum kartlari ile gruplanmali
+
+Su an `RadioListTile` ve divider yapisi kullaniliyor. Bunun yerine:
+
+- Gorunum
+- Renk temasi
+- Yazi boyutu
+- Hakkinda
+
+bolumleri kartlasabilir.
+
+#### 2. Tema secimi daha gorsel olmali
+
+Acik/koyu/sistem secimi metinsel yerine:
+
+- preview kartlari
+- mini telefon maketi
+- secilince check + hafif yukseltme
+
+seklinde sunulabilir.
+
+#### 3. Renk secimi daha premium hale getirilebilir
+
+Renk daireleri is goruyor ama palette kurumsal duruyor. Daha iyi bir yonde:
+
+- isimlendirilmis temalar
+- ornek arka plan preview
+- secili palette UI preview karti
+
+#### 4. Font boyutu alanina canli preview eklenmeli
+
+Su an tek satir preview var. Daha faydali preview:
+
+- baslik
+- govde metni
+- etiket
+
+ornekleri birlikte gostermeli.
+
+### Ayarlar icin animasyon onerileri
+
+- Tema degisince tum sayfa hafif cross-fade yapsin
+- Renk secim daireleri secimde scale + glow animasyonu alsin
+- Preview karti secilen tema ile yumusak guncellensin
+
+## Global Tasarim Sistemi Onerisi
+
+Uygulamada en buyuk kazanimi, tek tek ekran degistirmekten cok ortak bir design system kurmak saglar.
+
+### Olusturulmasi onerilen temel katmanlar
+
+#### 1. Spacing sistemi
+
+Standart araliklar:
+
+- 4
+- 8
+- 12
+- 16
+- 20
+- 24
+- 32
+
+#### 2. Radius sistemi
+
+- kucuk: 12
+- orta: 16
+- buyuk: 24
+- hero surfaces: 28
+
+#### 3. Yuzey sistemi
+
+- primary surface
+- elevated card
+- tinted card
+- editorial paper surface
+- floating action surface
+
+#### 4. Mood renk sistemi
+
+Mood'lar su an farkli yerlerde farkli sekilde temsil ediliyor. Ortak bir `mood -> color/icon/label` haritasi tanimlanmali.
+
+#### 5. Tipografi rolleri
+
+- hero title
+- screen title
+- section label
+- body
+- meta
+- chip text
+
+Editor icin serif etkisi korunup ana uygulamada daha temiz bir sans serif ile kontrast kurulabilir.
+
+## Benim Uygulayabilecegim Somut Gelistirmeler
+
+Bu kod tabaninda bir sonraki adim olarak teknik olarak uygulayabilecegim somut iyilestirmeler:
+
+### Hizli kazanclar
+
+- Ana ekran ust alanini yeniden tasarlamak
+- `EntryCard` bilesenini daha premium hale getirmek
+- Bos durum ekranlarini yeniden cizmek
+- Mood chip sistemini ortaklestirmek
+- Ayarlar ekranini kart tabanli hale getirmek
+- Istatisik kartlarinin spacing ve renk dilini birlestirmek
+
+### Animasyon paketi
+
+- `AnimatedSwitcher` ile arama, bos/dolu durum gecisleri
+- Liste kartlarinda fade + slide giris animasyonu
+- FAB shrink/expand davranisi
+- Takvim secim gecisleri
+- Grafiklerde count-up ve chart reveal animasyonlari
+- Editor bolumlerinde yumusak reveal animasyonlari
+
+### Daha ileri seviye gelistirmeler
+
+- Ozel sayfa gecis animasyonlari (`go_router` custom transitions)
+- Shared element benzeri kart -> editor gecisi
+- Ses kaydinda waveform tabanli geri bildirim
+- Tam bir `AppSpacing`, `AppRadii`, `AppDurations`, `AppShadows` sistemi
+- Tek merkezden yonetilen mood presentation modeli
+
+## Onceliklendirilmis Yol Haritasi
+
+## Asama 1 - En yuksek etki / dusuk-orta maliyet
+
+- Ana ekran hero alani
+- Entry card redesign
+- Bos durumlarin iyilestirilmesi
+- Search gecisinin animasyonlu hale gelmesi
+- Ayarlar ekraninin kart tabanli tasarima gecmesi
+
+## Asama 2 - Marka hissini guclendirme
+
+- Takvim ekraninin daha anlatimli hale gelmesi
+- Istatistik ekraninda dashboard dili kurulmasi
+- Mood sisteminin ortak gorsel dile kavusmasi
+- Theme system tarafinda spacing/radius/token yapisi
+
+## Asama 3 - Duygusal etkilesim ve premium his
+
+- Editor mikro animasyonlari
+- Ozel route transition'lar
+- Ses kaydi deneyiminin zenginlestirilmesi
+- Basarili kaydetme / silme / ekleme feedback animasyonlari
+
+## Sonuc
+
+Uygulamanin cekirdegi guclu. En degerli nokta, editor ekraninda baslamis olan "defter" hissi. 
+En buyuk firsat ise bu karakteri ana ekran, takvim, istatistik ve ayarlar ekranlarina da tasimak.
+
+Tasarim acisindan onerim, tum ekranlari bir anda degistirmek yerine su sira ile ilerlemek:
+
+1. Home + EntryCard
+2. Settings + Statistics polish
+3. Calendar polish
+4. Editor mikro animasyonlari
+
+Bu siralama ile hem uygulamanin ilk izlenimi hizla guclenir hem de mevcut ozel editor kimligi tum urune yayilmis olur.
+
+----------------------------------------------------------------------------------------------------------------------------
+
+1.Ana ekran iyileştirmeleri
+	a-Ust alan yeniden tasarlanabilir
+ 	b-Ruh hali filtreleri daha anlamli hale getirilebilir
+	c-Liste kartlari daha bilgi zengini olabilir
+	d-Bos durum daha yonlendirici olmali
+	e-Arama modu daha rafine hale getirilebilir
+	f-Ana ekran icin animasyon onerileri
+		- Liste ilk acilista kartlar 30-40 ms stagger ile asagidan hafif kayarak gelsin
+		- Mood chip secildiginde 0.96 -> 1.0 scale ve renk yumusamasi olsun
+		- Arama ac/kapat `AnimatedSwitcher` + fade/size transition ile olsun
+		- Yeni kayit eklendikten sonra ilgili kart listeye fade + slide ile girsin
+		- FAB scroll asagida iken kuculsun, yukari cikinca tekrar genislesin
+2.Kayıt kartı iyileştirmeleri
+	a-Kart semantigi guclendirilmeli
+	b-Sil aksiyonu daha geri planda olmali
+	c-Kartlar arasinda daha guclu ritim kurulabilir
+	d-Kart icin animasyon onerileri
+		- Basildiginda hafif press animation
+		- Silme onayindan sonra shrink + fade out
+		- Kart acilirken hero benzeri baslik gecisi
+3.Takvim ekranı iyileştirmeleri
+	a-Takvim kapsayici alani daha etkileyici olabilir
+	b-Marker sistemi daha acik hale getirilebilir
+	c-Secili gun bolumu daha kartlasmis olabilir
+	d-Alt ekle butonu tasarimsal olarak ekranla butunlesmeli
+	e-Takvim icin animasyon onerileri
+		- Ay degisiminde takvim yatay slide ile gecsin
+		- Gun secildiginde secili tarih ozeti cross-fade ile guncellensin
+		- Marker'lar ekranda belirdiginde minik scale-in yapsin
+		- Alttaki secili gun kayit listesi `AnimatedSwitcher` ile degissin
+4.İstatistik ekranı iyileştirmeleri
+	a-Ustte bir ozet bandi olmali
+	b-Kart sisteminde ortak stil dili kurulmali
+	c-Grafik anlatimsal hale gelmeli
+	d-Etiket bolumu daha modernlestirilebilir
+	e-Istatistik icin animasyon onerileri
+		- Summary card sayilari count-up ile gelsin
+		- Pie chart bolumleri 0'dan acilarak olussun
+		- Progress cizgileri soldan dolsun
+		- Sayfa ilk acilista bolumler kademeli fade-up ile girsin
+5.Editör ekranı iyileştirmeleri
+	a-Baslik bolumu daha editorial olabilir
+	b-Editor ve form alanlari arasinda hiyerarsi kurulmali
+	c-Mood secimi cok daha duygusal hale getirilebilir
+	d-Ses kaydi bolumu daha modernlestirilmeli
+	e-Konum ve hava durumu bolumu daha "hatira" odakli sunulmali
+	f-Toolbar gorsel olarak daha rafine olabilir
+	g-Editor icin animasyon onerileri
+		- Ekran acilisinda sayfa hafif asagidan gelip otursun
+		- Baslik ve tarih alanlari sirali fade-up ile gelsin
+		- Mood seciminde soft spring ile secim animasyonu olsun
+		- Ses kaydinda record butonu pulse yapsin
+		- Konum yuklenirken skeleton/pill shimmer kullanilsin
+		- Kaydetme sirasinda buton progress state'e gecsin, basariliysa yumusak success feedback gosterilsin
+6.Ayarlar ekranı iyileştirmeleri
+	a-Ayarlar sayfasi bolum kartlari ile gruplanmali
+	b-Tema secimi daha gorsel olmali
+	c-Renk secimi daha premium hale getirilebilir
+	d-Font boyutu alanina canli preview eklenmeli
+	e-Ayarlar icin animasyon onerileri
+		- Tema degisince tum sayfa hafif cross-fade yapsin
+		- Renk secim daireleri secimde scale + glow animasyonu alsin
+		- Preview karti secilen tema ile yumusak guncellensin
+7.Global tasarım sistemi
+	a-Spacing sistemi
+	b-Radius sistemi
+	c-Yuzey sistemi
+	d-Mood renk sistemi
+	e-Tipografi rolleri
+8.Animasyon paketi
+	a-
+	b-
+	c-
+	d-
+	e-
+9.İleri seviye etkileşimler
+	a-
+	b-
+	c-
+	d-
+	e-

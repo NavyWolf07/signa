@@ -1,0 +1,55 @@
+name: diary
+description: Kişisel günlük uygulaması
+version: 1.0.0+1
+publish_to: 'none'
+
+environment:
+  sdk: '^3.10.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # Durum yönetimi
+  flutter_riverpod: ^3.0.0
+  riverpod_annotation: ^4.0.0
+
+  # Navigasyon
+  go_router: ^15.0.0
+
+  # Yerel veritabanı (isar yerine - dart 3.10 ile uyumlu)
+  sqflite: ^2.4.0
+  path: ^1.9.0
+
+  # Ses oynatma
+  just_audio: ^0.9.38
+  record: ^6.0.0
+  permission_handler: ^11.3.1
+
+  # Küçük veri saklama
+  shared_preferences: ^2.3.2
+
+  # Telefon klasör yolları
+  path_provider: ^2.1.3
+
+  # Yardımcı araçlar
+  uuid: ^4.4.2
+  intl: ^0.20.0
+  flutter_quill: ^11.5.0
+  table_calendar: ^3.1.2
+  geolocator: ^13.0.1
+  http: ^1.2.0
+  fl_chart: ^0.68.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  build_runner: ^2.4.11
+  riverpod_generator: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
