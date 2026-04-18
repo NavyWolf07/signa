@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../domain/theme_notifier.dart';
+import '../../../auth/domain/auth_notifier.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -89,6 +90,51 @@ class SettingsScreen extends ConsumerWidget {
                     ],
                   ),
                 ],
+              ),
+            ),
+
+            // ── GÜVENLİK ──
+            _buildSection(
+              context,
+              title: 'GÜVENLİK (KİLİT)',
+              child: Consumer(
+                builder: (context, ref, child) {
+                  final authState = ref.watch(authNotifierProvider);
+                  final authNotifier = ref.read(authNotifierProvider.notifier);
+                  final localTheme = Theme.of(context);
+                  
+                  return SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Biyometrik Kilit (Şifre)', style: TextStyle(fontWeight: FontWeight.w600)),
+                    subtitle: Text(
+                      authState.canCheckBiometrics
+                        ? 'Her girişte şifre / parmak izi sorulur.'
+                        : 'Cihazınızda ekran şifresi / biyometrik güvenlik yok.',
+                      style: TextStyle(fontSize: 12, color: localTheme.colorScheme.onSurfaceVariant),
+                    ),
+                    value: authState.isBiometricEnabled,
+                    activeTrackColor: localTheme.colorScheme.primary.withValues(alpha: 0.5),
+                    activeThumbColor: localTheme.colorScheme.primary,
+                    onChanged: authState.canCheckBiometrics 
+                      ? (value) => authNotifier.toggleBiometric(value)
+                      : null,
+                    secondary: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: authState.isBiometricEnabled
+                            ? localTheme.colorScheme.primary.withValues(alpha: 0.1)
+                            : localTheme.colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.fingerprint_rounded, 
+                        color: authState.isBiometricEnabled
+                            ? localTheme.colorScheme.primary
+                            : localTheme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
 

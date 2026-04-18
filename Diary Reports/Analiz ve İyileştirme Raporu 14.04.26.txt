@@ -31,22 +31,22 @@ Günlüklerin sadece metin ve sesle sınırlı kalmaması için kamera veya gale
 ### 2. Biyometrik Güvenlik (FaceID / Parmak İzi)
 Günlükler son derece kişisel verilerdir. Uygulama açılışına veya uygulama arka plana gidip geldiğinde çalışan bir PIN veya Parmak İzi/Yüz tanıma ekranı (`local_auth` paketi ile) eklenebilir.
 
-### 3. Takvim Görünümü (Calendar View)
+### 3. Takvim Görünümü (Calendar View) ++++
 Ana ekrandaki yatay liste yerine, kullanıcıların geçmiş günlerine dönüp bakmasını kolaylaştıracak etkileşimli bir "Takvim" sekmesi eklenebilir. (Örn: `table_calendar` paketi kullanılarak). Hangi günlerde günlük tutulmuş, takvim üzerinde noktalarla gösterilebilir.
 
-### 4. İstatistikler ve İçgörüler (Insights)
+### 4. İstatistikler ve İçgörüler (Insights) ++++
 Kullanıcının yazdığı günlüklere göre; en çok hangi ruh halinde olduğunu gösteren grafikler (örneğin aylık bir pasta grafiği), art arda kaç gün yazı yazdığı (streak), toplam girilen kelime sayısı gibi eğlenceli istatistikler sunan bir ekran eklenebilir.
 
-### 5. Konum ve Hava Durumu Entegrasyonu
+### 5. Konum ve Hava Durumu Entegrasyonu ++++
 Kullanıcı günlüğünü yazarken arka planda o anki konumu (Örn: "Kadıköy, İstanbul") ve hava durumu (Örn: "Güneşli, 22°C") çekilip otomatik olarak günlüğe kaydedilebilir. Bu sayede geçmişteki o anı hatırlamak daha keyifli olur.
 
 ### 6. Yedekleme ve Dışa Aktarma
 Cihaz değiştiğinde verilerin kaybolmaması için Google Drive entegrasyonu (Drive'a yedekleme) veya günlükleri PDF / Özel bir dosya formatında dışa aktarma (Export) özelliği sağlanabilir.
 
-### 7. Zengin Metin Editörü (Rich Text)
+### 7. Zengin Metin Editörü (Rich Text) ++++
 Kullanıcıların kalın, italik yazmasına, veya metin renklerini değiştirmesine olanak tanıyan daha gelişmiş bir editör (örn: `flutter_quill`) eklenebilir (Mevcut 'çizgili sayfa' tasarımıyla uyumlu harmanlanarak).
 
-### 8. Animasyonlar ve UI Cilası
+### 8. Animasyonlar ve UI Cilası ++++
 Sayfa geçişlerine, kalp atışı veya listelerde kaydırma yaparken oluşan mikro animasyonlara yer verebiliriz (`flutter_animate` ile). Daha canlı renkler veya cam (glassmorphism) efektleriyle UI tamamlanabilir.
 
 ---
