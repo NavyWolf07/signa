@@ -714,11 +714,13 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
             onPressed: () => _onBackPressed(),
           ),
           actions: [
-            if (widget.entryId != null)
-              Padding(
+            AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: hasContent ? 1.0 : 0.4,
+              child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: FilledButton.tonalIcon(
-                  onPressed: _isLoading ? null : _save,
+                  onPressed: _isLoading || !hasContent ? null : _save,
                   icon: const Icon(Icons.check_rounded, size: 18),
                   label: const Text('Kaydet'),
                   style: FilledButton.styleFrom(
@@ -727,20 +729,9 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                   ),
                 ),
               ),
+            ),
           ],
         ),
-        floatingActionButton: widget.entryId != null
-            ? null
-            : AnimatedScale(
-                duration: const Duration(milliseconds: 200),
-                scale: hasContent ? 1.0 : 0.0,
-                child: FloatingActionButton.extended(
-                  heroTag: 'editor_fab',
-                  onPressed: _isLoading ? null : _save,
-                  icon: const Icon(Icons.check_rounded),
-                  label: const Text('Kaydet', style: TextStyle(fontWeight: FontWeight.w700)),
-                ),
-              ),
         body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(

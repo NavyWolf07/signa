@@ -67,7 +67,7 @@ class ThemeNotifier extends Notifier<ThemeSettings> {
 
   Future<void> setSeedColor(Color color) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_colorKey, color.value);
+    await prefs.setInt(_colorKey, color.toARGB32());
     state = state.copyWith(seedColor: color);
   }
 

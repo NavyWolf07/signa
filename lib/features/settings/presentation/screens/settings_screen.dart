@@ -7,7 +7,6 @@ import '../../domain/theme_notifier.dart';
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
-  // Seçilebilecek renkler
   static const _colors = [
     Color(0xFF7C5CBF), // Mor
     Color(0xFF2196F3), // Mavi
@@ -27,159 +26,316 @@ class SettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ayarlar'),
+        title: Text(
+          'Ayarlar',
+          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+        ),
+        centerTitle: true,
+        scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => context.pop(),
         ),
       ),
-      body: ListView(
-        children: [
-          // GÖRÜNÜM BÖLÜMÜ
-          _sectionTitle(context, 'GÖRÜNÜM'),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.only(top: 16, bottom: 40),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── TEMA GÖRÜNÜMÜ ──
+            _buildSection(
+              context,
+              title: 'GÖRÜNÜM TASARIMI',
+              child: _buildThemeSelection(context, settings, notifier),
+            ),
 
-          RadioListTile<ThemeMode>(
-            title: const Text('Sistem teması'),
-            subtitle: const Text('Telefon ayarına göre değişir'),
-            secondary: const Icon(Icons.brightness_auto_outlined),
-            value: ThemeMode.system,
-            groupValue: settings.themeMode,
-            onChanged: (value) => notifier.setThemeMode(value!),
-          ),
-          RadioListTile<ThemeMode>(
-            title: const Text('Açık tema'),
-            secondary: const Icon(Icons.light_mode_outlined),
-            value: ThemeMode.light,
-            groupValue: settings.themeMode,
-            onChanged: (value) => notifier.setThemeMode(value!),
-          ),
-          RadioListTile<ThemeMode>(
-            title: const Text('Koyu tema'),
-            secondary: const Icon(Icons.dark_mode_outlined),
-            value: ThemeMode.dark,
-            groupValue: settings.themeMode,
-            onChanged: (value) => notifier.setThemeMode(value!),
-          ),
+            // ── ANA RENK ──
+            _buildSection(
+              context,
+              title: 'UYGULAMA RENGİ',
+              child: _buildColorSelection(context, settings, notifier),
+            ),
 
-          const Divider(),
-
-          // RENK BÖLÜMÜ
-          _sectionTitle(context, 'ANA RENK'),
-
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: _colors.map((color) {
-                final isSelected = settings.seedColor == color;
-                return GestureDetector(
-                  onTap: () => notifier.setSeedColor(color),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: color,
-                      shape: BoxShape.circle,
-                      border: isSelected
-                          ? Border.all(
-                              color: theme.colorScheme.onSurface,
-                              width: 3,
-                            )
-                          : null,
-                      boxShadow: isSelected
-                          ? [
-                              BoxShadow(
-                                color: color.withOpacity(0.5),
-                                blurRadius: 8,
-                                spreadRadius: 2,
-                              ),
-                            ]
-                          : null,
-                    ),
-                    child: isSelected
-                        ? const Icon(Icons.check, color: Colors.white, size: 24)
-                        : null,
+            // ── YAZI BOYUTU ──
+            _buildSection(
+              context,
+              title: 'TİPOGRAFİ & BOYUT',
+              child: Column(
+                children: [
+                  _buildFontPreview(context),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      const Icon(Icons.text_fields_rounded, size: 16),
+                      Expanded(
+                        child: SliderTheme(
+                          data: SliderThemeData(
+                            activeTrackColor: theme.colorScheme.primary,
+                            inactiveTrackColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+                            thumbColor: theme.colorScheme.primary,
+                            trackHeight: 6,
+                            overlayColor: theme.colorScheme.primary.withValues(alpha: 0.15),
+                          ),
+                          child: Slider(
+                            value: settings.fontSize,
+                            min: 0.8,
+                            max: 1.4,
+                            divisions: 3,
+                            onChanged: (value) => notifier.setFontSize(value),
+                          ),
+                        ),
+                      ),
+                      const Icon(Icons.text_fields_rounded, size: 24),
+                    ],
                   ),
-                );
-              }).toList(),
+                ],
+              ),
+            ),
+
+            // ── HAKKINDA ──
+            _buildSection(
+              context,
+              title: 'HAKKINDA',
+              child: Column(
+                children: [
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.auto_awesome_rounded, color: theme.colorScheme.primary),
+                    ),
+                    title: const Text('Uygulama Versiyonu', style: TextStyle(fontWeight: FontWeight.w600)),
+                    trailing: Text('1.0.0', style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontWeight: FontWeight.bold)),
+                  ),
+                  const Divider(height: 1, thickness: 0.5),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.tertiary.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.book_outlined, color: theme.colorScheme.tertiary),
+                    ),
+                    title: const Text('Uygulama Hakkında', style: TextStyle(fontWeight: FontWeight.w600)),
+                    subtitle: const Text('Kişisel Günlük Asistanı'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSection(BuildContext context, {required String title, required Widget child}) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 28),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 8, bottom: 12),
+            child: Text(
+              title,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.5,
+              ),
             ),
           ),
-
-          const Divider(),
-
-          // FONT BOYUTU BÖLÜMÜ
-          _sectionTitle(context, 'YAZI BOYUTU'),
-
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('A', style: TextStyle(fontSize: 12)),
-                    Expanded(
-                      child: Slider(
-                        value: settings.fontSize,
-                        min: 0.8,
-                        max: 1.4,
-                        divisions: 3,
-                        onChanged: (value) => notifier.setFontSize(value),
-                      ),
-                    ),
-                    const Text('A', style: TextStyle(fontSize: 20)),
-                  ],
-                ),
-                // Önizleme
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    'Yazı boyutu önizlemesi',
-                    style: theme.textTheme.bodyMedium,
-                  ),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Color.alphaBlend(theme.colorScheme.primary.withValues(alpha: 0.05), theme.colorScheme.surface),
+                  theme.colorScheme.surface,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: theme.colorScheme.shadow.withValues(alpha: 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
+            child: child,
           ),
-
-          const Divider(),
-
-          // HAKKINDA BÖLÜMÜ
-          _sectionTitle(context, 'HAKKINDA'),
-
-          const ListTile(
-            leading: Icon(Icons.info_outline),
-            title: Text('Uygulama versiyonu'),
-            trailing: Text('1.0.0'),
-          ),
-          const ListTile(
-            leading: Icon(Icons.book_outlined),
-            title: Text('Diary'),
-            subtitle: Text('Kişisel günlük uygulaması'),
-          ),
-
-          const SizedBox(height: 32),
         ],
       ),
     );
   }
 
-  Widget _sectionTitle(BuildContext context, String title) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: Theme.of(context).colorScheme.primary,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 1.2,
+  Widget _buildThemeSelection(BuildContext context, ThemeSettings settings, ThemeNotifier notifier) {
+    return Row(
+      children: [
+        _buildThemeOption(context, settings, notifier, ThemeMode.system, 'Sistem', Icons.brightness_auto_rounded),
+        const SizedBox(width: 12),
+        _buildThemeOption(context, settings, notifier, ThemeMode.light, 'Açık', Icons.light_mode_rounded),
+        const SizedBox(width: 12),
+        _buildThemeOption(context, settings, notifier, ThemeMode.dark, 'Koyu', Icons.dark_mode_rounded),
+      ],
+    );
+  }
+
+  Widget _buildThemeOption(BuildContext context, ThemeSettings settings, ThemeNotifier notifier, ThemeMode mode, String label, IconData icon) {
+    final theme = Theme.of(context);
+    final isSelected = settings.themeMode == mode;
+    
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => notifier.setThemeMode(mode),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color: isSelected ? theme.colorScheme.primaryContainer : theme.colorScheme.surfaceContainerLowest,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isSelected ? theme.colorScheme.primary : theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+              width: isSelected ? 2 : 1,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.15),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Column(
+            children: [
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: Icon(
+                  icon, 
+                  key: ValueKey(isSelected),
+                  color: isSelected ? theme.colorScheme.onPrimaryContainer : theme.colorScheme.onSurfaceVariant,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                  color: isSelected ? theme.colorScheme.onPrimaryContainer : theme.colorScheme.onSurface,
+                ),
+              ),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildColorSelection(BuildContext context, ThemeSettings settings, ThemeNotifier notifier) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Wrap(
+        spacing: 16,
+        runSpacing: 16,
+        alignment: WrapAlignment.center,
+        children: _colors.map((color) {
+          final isSelected = settings.seedColor == color;
+          return GestureDetector(
+            onTap: () => notifier.setSeedColor(color),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutCubic,
+              width: isSelected ? 52 : 44,
+              height: isSelected ? 52 : 44,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: theme.colorScheme.surface,
+                  width: isSelected ? 3 : 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withValues(alpha: isSelected ? 0.4 : 0.2),
+                    blurRadius: isSelected ? 12 : 4,
+                    spreadRadius: isSelected ? 2 : 0,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: AnimatedScale(
+                duration: const Duration(milliseconds: 200),
+                scale: isSelected ? 1.0 : 0.0,
+                child: const Icon(Icons.check_rounded, color: Colors.white, size: 24),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildFontPreview(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.15), 
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.auto_stories_rounded, size: 14, color: theme.colorScheme.primary),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Mükemmel Bir Gün',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Bugün çok güzel bir gündü. Kütüphanede yeni bir kitap okumaya başladım ve uzun zamandır hissetmediğim kadar huzurlu hissettim. Bazen sadece durup küçük detayların tadını çıkarmak gerekiyor.',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              height: 1.5,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
       ),
     );
   }
