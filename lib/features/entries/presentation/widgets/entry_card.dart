@@ -137,7 +137,14 @@ class _EntryCardState extends State<EntryCard> {
                             if (widget.entry.audioPath != null)
                               const _InfoPill(
                                 icon: Icons.mic_none_rounded,
-                                label: 'Ses kaydı',
+                                label: 'Ses',
+                              ),
+                            if (widget.entry.images.isNotEmpty)
+                              _InfoPill(
+                                icon: Icons.photo_outlined,
+                                label: widget.entry.images.length > 1
+                                    ? '${widget.entry.images.length} Foto'
+                                    : 'Fotoğraf',
                               ),
                             if (widget.entry.tags.isNotEmpty)
                               _InfoPill(

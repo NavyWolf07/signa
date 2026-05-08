@@ -41,7 +41,7 @@ class _DiaryAppState extends ConsumerState<DiaryApp> with WidgetsBindingObserver
                               
     if (isGoingBackground) {
       final authState = ref.read(authNotifierProvider);
-      if (authState.isBiometricEnabled) {
+      if (authState.isBiometricEnabled && !authState.isBypassed) {
         // İşletim sistemi arka plana alırken ekran resmini çekmeden önce hemen karartıyoruz
         setState(() => _isObscured = true);
         ref.read(authNotifierProvider.notifier).lockApp();

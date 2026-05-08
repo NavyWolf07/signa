@@ -28,7 +28,7 @@ Mevcut yapı oldukça sağlam. Uygulamayı daha profesyonel, zengin ve *premium*
 ### 1. Medya Desteği (Fotoğraf Eklemek)
 Günlüklerin sadece metin ve sesle sınırlı kalmaması için kamera veya galeriden fotoğraf ekleme özelliği getirilebilir. `DiaryEntry` modeline `imagePaths` listesi ekleyerek her günlüğe anılarla ilgili fotoğraflar iliştirebiliriz.
 
-### 2. Biyometrik Güvenlik (FaceID / Parmak İzi)
+### 2. Biyometrik Güvenlik (FaceID / Parmak İzi) ++++
 Günlükler son derece kişisel verilerdir. Uygulama açılışına veya uygulama arka plana gidip geldiğinde çalışan bir PIN veya Parmak İzi/Yüz tanıma ekranı (`local_auth` paketi ile) eklenebilir.
 
 ### 3. Takvim Görünümü (Calendar View) ++++

@@ -21,7 +21,7 @@ class EntryRepository {
 
     return await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _createTable,
       onUpgrade: _upgradeTable,
     );
@@ -41,7 +41,8 @@ class EntryRepository {
         audioPath TEXT,
         documentContent TEXT,
         location TEXT,
-        weather TEXT
+        weather TEXT,
+        images TEXT
       )
     ''');
   }
@@ -56,6 +57,10 @@ class EntryRepository {
       // Version 3 migration
       await db.execute('ALTER TABLE entries ADD COLUMN location TEXT');
       await db.execute('ALTER TABLE entries ADD COLUMN weather TEXT');
+    }
+    if (oldVersion < 4) {
+      // Version 4 migration
+      await db.execute('ALTER TABLE entries ADD COLUMN images TEXT');
     }
   }
 

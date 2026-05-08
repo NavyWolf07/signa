@@ -7,22 +7,26 @@ class AuthState {
   final bool isBiometricEnabled;
   final bool isLocked;
   final bool canCheckBiometrics;
+  final bool isBypassed;
 
   const AuthState({
     this.isBiometricEnabled = false,
     this.isLocked = false,
     this.canCheckBiometrics = false,
+    this.isBypassed = false,
   });
 
   AuthState copyWith({
     bool? isBiometricEnabled,
     bool? isLocked,
     bool? canCheckBiometrics,
+    bool? isBypassed,
   }) {
     return AuthState(
       isBiometricEnabled: isBiometricEnabled ?? this.isBiometricEnabled,
       isLocked: isLocked ?? this.isLocked,
       canCheckBiometrics: canCheckBiometrics ?? this.canCheckBiometrics,
+      isBypassed: isBypassed ?? this.isBypassed,
     );
   }
 }
@@ -83,9 +87,14 @@ class AuthNotifier extends Notifier<AuthState> {
 
   // Uygulama alta atıldığında kilitle
   void lockApp() {
-    if (state.isBiometricEnabled) {
+    if (state.isBiometricEnabled && !state.isBypassed) {
       state = state.copyWith(isLocked: true);
     }
+  }
+
+  // Galeri veya kamera gibi sistem pencerelerinde kilidi atlamak için
+  void setBypass(bool value) {
+    state = state.copyWith(isBypassed: value);
   }
 }
 

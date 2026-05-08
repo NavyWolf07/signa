@@ -11,6 +11,7 @@ class DiaryEntry {
   final String? weather;
   // Zengin metin formatındaki içerik (flutter_quill JSON)
   final String? documentContent;
+  final List<String> images;
 
   const DiaryEntry({
     this.id,
@@ -24,6 +25,7 @@ class DiaryEntry {
     this.location,
     this.weather,
     this.documentContent,
+    this.images = const [],
   });
 
   // Veritabanına kaydetmek için Map'e çevir
@@ -40,6 +42,7 @@ class DiaryEntry {
       'location': location,
       'weather': weather,
       'documentContent': documentContent,
+      'images': images.join(','),
     };
   }
 
@@ -61,6 +64,9 @@ class DiaryEntry {
       location: map['location'] as String?,
       weather: map['weather'] as String?,
       documentContent: map['documentContent'] as String?,
+      images: map['images'] != null && (map['images'] as String).isNotEmpty
+          ? (map['images'] as String).split(',')
+          : [],
     );
   }
 
@@ -77,6 +83,7 @@ class DiaryEntry {
     String? location,
     String? weather,
     String? documentContent,
+    List<String>? images,
   }) {
     return DiaryEntry(
       id: id ?? this.id,
@@ -90,6 +97,7 @@ class DiaryEntry {
       location: location ?? this.location,
       weather: weather ?? this.weather,
       documentContent: documentContent ?? this.documentContent,
+      images: images ?? this.images,
     );
   }
 }

@@ -1,9 +1,14 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
+import 'package:permission_handler/permission_handler.dart';
 
 import 'package:just_audio/just_audio.dart';
 import '../../../audio/domain/audio_notifier.dart';
@@ -12,6 +17,7 @@ import '../../data/models/diary_entry.dart';
 import '../../domain/entry_notifier.dart';
 import '../../domain/location_weather_service.dart';
 import 'package:geolocator/geolocator.dart';
+import '../../../auth/domain/auth_notifier.dart';
 
 class EditorScreen extends ConsumerStatefulWidget {
   const EditorScreen({super.key, this.entryId, this.initialDate});
@@ -34,6 +40,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   
   String _selectedMood = 'neutral';
   List<String> _tags = [];
+  List<String> _images = [];
   final _tagController = TextEditingController();
   bool _isLoading = false;
   DiaryEntry? _existingEntry;
@@ -123,6 +130,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
 
         _selectedMood = entry.mood;
         _tags = List.from(entry.tags);
+        _images = List.from(entry.images);
         _location = entry.location;
         _weather = entry.weather;
         
@@ -265,6 +273,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
           documentContent: documentJson,
           mood: _selectedMood,
           tags: _tags,
+          images: _images,
           updatedAt: DateTime.now(),
           audioPath: ref.read(audioNotifierProvider).recordedPaths.isNotEmpty ? ref.read(audioNotifierProvider).recordedPaths.join(';') : null,
           location: _location,
@@ -281,6 +290,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
           createdAt: widget.initialDate ?? DateTime.now(),
           mood: _selectedMood,
           tags: _tags,
+          images: _images,
           audioPath: ref.read(audioNotifierProvider).recordedPaths.isNotEmpty ? ref.read(audioNotifierProvider).recordedPaths.join(';') : null,
           location: _location,
           weather: _weather,
@@ -777,6 +787,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                                 ],
                               ),
                               const SizedBox(height: 8),
+                              
                               // Başlık alanı
                               TextField(
                                 controller: _titleController,
@@ -895,7 +906,60 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                         ),
                         ),
 
-                        // (Alt kartlar kaldırılıp Composer'a çekildi)
+                        // ── Fotoğraf Önizleme (Alt Kısım) ──
+                        if (_images.isNotEmpty) ...[
+                          Container(
+                            color: pageColor,
+                            width: double.infinity,
+                            padding: const EdgeInsets.only(left: 52, top: 16, bottom: 24),
+                            child: SizedBox(
+                              height: 140,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: _images.length,
+                                itemBuilder: (context, index) {
+                                  return GestureDetector(
+                                    onTap: () {
+                                      // Kilit ekranını geçici bypass et
+                                      ref.read(authNotifierProvider.notifier).setBypass(true);
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => _FullScreenGallery(
+                                            images: _images,
+                                            initialIndex: index,
+                                            onDelete: (deletedIndex) {
+                                              setState(() {
+                                                _images.removeAt(deletedIndex);
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                      ).then((_) {
+                                        // Geri dönüldüğünde bypass'ı kapat
+                                        if (mounted) ref.read(authNotifierProvider.notifier).setBypass(false);
+                                      });
+                                    },
+                                    child: Container(
+                                      margin: const EdgeInsets.only(right: 16),
+                                      width: 140,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(16),
+                                        boxShadow: [
+                                          BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 8, offset: const Offset(0, 4))
+                                        ],
+                                        image: DecorationImage(
+                                          image: FileImage(File(_images[index])),
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
 
                               ],
                             ),
@@ -982,6 +1046,13 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                                   avatar: Icon(ref.watch(audioNotifierProvider).audioState == AudioState.idle ? Icons.mic : Icons.mic_none, size: 16),
                                   label: const Text('Ses'),
                                   onPressed: () => _showAudioSheet(context, theme),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                ),
+                                const SizedBox(width: 8),
+                                ActionChip(
+                                  avatar: const Icon(Icons.photo_rounded, size: 16),
+                                  label: Text(_images.isEmpty ? 'Fotoğraf' : '${_images.length} Foto'),
+                                  onPressed: () => _showImageSheet(context, theme),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                 ),
                               ],
@@ -1159,6 +1230,101 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
       },
     );
   }
+
+  void _showImageSheet(BuildContext context, ThemeData theme) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: theme.colorScheme.surface,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text("Fotoğraf Ekle", style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildImageSourceButton(
+                    context, theme,
+                    icon: Icons.camera_alt_rounded,
+                    label: "Kamera",
+                    source: ImageSource.camera,
+                  ),
+                  _buildImageSourceButton(
+                    context, theme,
+                    icon: Icons.photo_library_rounded,
+                    label: "Galeri",
+                    source: ImageSource.gallery,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildImageSourceButton(BuildContext context, ThemeData theme, {required IconData icon, required String label, required ImageSource source}) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(20),
+      onTap: () async {
+        Navigator.pop(context);
+        
+        // Kamera için açıkça izin isteyelim
+        if (source == ImageSource.camera) {
+          final status = await Permission.camera.request();
+          if (status.isDenied || status.isPermanentlyDenied) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Kamera izni gereklidir.')));
+            }
+            return;
+          }
+        }
+
+        // Kilit ekranını geçici bypass et
+        ref.read(authNotifierProvider.notifier).setBypass(true);
+        
+        final picker = ImagePicker();
+        final pickedFile = await picker.pickImage(source: source, imageQuality: 85);
+        
+        // İşlem bittikten sonra bypass'ı kapat (Gecikmeli kapatıyoruz ki sayfa toparlansın)
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) ref.read(authNotifierProvider.notifier).setBypass(false);
+        });
+
+        if (pickedFile != null) {
+          final directory = await getApplicationDocumentsDirectory();
+          final fileName = 'diary_img_${DateTime.now().millisecondsSinceEpoch}${p.extension(pickedFile.path)}';
+          final savedImage = await File(pickedFile.path).copy('${directory.path}/$fileName');
+          
+          setState(() {
+            _images.add(savedImage.path);
+          });
+        }
+      },
+      child: Container(
+        width: 120,
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.1)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 40, color: theme.colorScheme.primary),
+            const SizedBox(height: 12),
+            Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 // ── Çizgili defter kağıdı ──
@@ -1272,4 +1438,119 @@ class _BinderPainter extends CustomPainter {
       oldDelegate.holeColor != holeColor ||
       oldDelegate.marginLineColor != marginLineColor ||
       oldDelegate.pageColor != pageColor;
+}
+
+// ── Tam Ekran Fotoğraf Galerisi ──
+class _FullScreenGallery extends StatefulWidget {
+  final List<String> images;
+  final int initialIndex;
+  final ValueChanged<int> onDelete;
+
+  const _FullScreenGallery({
+    required this.images,
+    required this.initialIndex,
+    required this.onDelete,
+  });
+
+  @override
+  State<_FullScreenGallery> createState() => _FullScreenGalleryState();
+}
+
+class _FullScreenGalleryState extends State<_FullScreenGallery> {
+  late PageController _pageController;
+  late int _currentIndex;
+  late List<String> _currentImages;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentImages = List.from(widget.images);
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: _currentIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _deleteCurrent() {
+    if (_currentImages.isEmpty) return;
+    
+    // Ana ekrana silinenin indeksini bildir
+    widget.onDelete(_currentIndex);
+    
+    setState(() {
+      _currentImages.removeAt(_currentIndex);
+      if (_currentImages.isEmpty) {
+        Navigator.pop(context);
+      } else {
+        if (_currentIndex >= _currentImages.length) {
+          _currentIndex = _currentImages.length - 1;
+        }
+        _pageController.jumpToPage(_currentIndex);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_currentImages.isEmpty) return const SizedBox.shrink();
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text(
+          '${_currentIndex + 1} / ${_currentImages.length}',
+          style: const TextStyle(color: Colors.white, fontSize: 16),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_outline_rounded, color: Colors.white),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('Fotoğrafı Sil'),
+                  content: const Text('Bu fotoğrafı anıdan silmek istediğinize emin misiniz?'),
+                  actions: [
+                    TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('İptal')),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _deleteCurrent();
+                      },
+                      child: const Text('Sil', style: TextStyle(color: Colors.red)),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+      body: PageView.builder(
+        controller: _pageController,
+        itemCount: _currentImages.length,
+        onPageChanged: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        itemBuilder: (context, index) {
+          return InteractiveViewer(
+            minScale: 0.5,
+            maxScale: 4.0,
+            child: Image.file(
+              File(_currentImages[index]),
+              fit: BoxFit.contain,
+            ),
+          );
+        },
+      ),
+    );
+  }
 }
