@@ -8,12 +8,14 @@ class AuthState {
   final bool isLocked;
   final bool canCheckBiometrics;
   final bool isBypassed;
+  final bool isLoading;
 
   const AuthState({
     this.isBiometricEnabled = false,
     this.isLocked = false,
     this.canCheckBiometrics = false,
     this.isBypassed = false,
+    this.isLoading = true,
   });
 
   AuthState copyWith({
@@ -21,12 +23,14 @@ class AuthState {
     bool? isLocked,
     bool? canCheckBiometrics,
     bool? isBypassed,
+    bool? isLoading,
   }) {
     return AuthState(
       isBiometricEnabled: isBiometricEnabled ?? this.isBiometricEnabled,
       isLocked: isLocked ?? this.isLocked,
       canCheckBiometrics: canCheckBiometrics ?? this.canCheckBiometrics,
       isBypassed: isBypassed ?? this.isBypassed,
+      isLoading: isLoading ?? this.isLoading,
     );
   }
 }
@@ -57,6 +61,7 @@ class AuthNotifier extends Notifier<AuthState> {
       isBiometricEnabled: isEnabled,
       canCheckBiometrics: canCheck,
       isLocked: isEnabled, // Eğer açıksa başlangıçta direkt kilidi koy
+      isLoading: false, // İlk kontrol bitti
     );
   }
 

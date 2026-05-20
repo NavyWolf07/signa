@@ -956,9 +956,13 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                                         boxShadow: [
                                           BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 8, offset: const Offset(0, 4))
                                         ],
-                                        image: DecorationImage(
-                                          image: FileImage(File(_images[index])),
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(16),
+                                        child: Image.file(
+                                          File(_images[index]),
                                           fit: BoxFit.cover,
+                                          cacheWidth: 300, // Hafızayı şişirmemek ve kasmayı önlemek için yeniden boyutlandır
                                         ),
                                       ),
                                     ),
@@ -1556,6 +1560,7 @@ class _FullScreenGalleryState extends State<_FullScreenGallery> {
             child: Image.file(
               File(_currentImages[index]),
               fit: BoxFit.contain,
+              cacheWidth: 1080, // Aşırı büyük çözünürlükteki fotoğraflar için RAM optimizasyonu
             ),
           );
         },

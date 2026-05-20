@@ -82,6 +82,11 @@ class _DiaryAppState extends ConsumerState<DiaryApp> with WidgetsBindingObserver
       themeMode: settings.themeMode,
       routerConfig: appRouter,
       builder: (context, child) {
+        if (authState.isLoading) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
         return Stack(
           children: [
             if (child != null) child,
