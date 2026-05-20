@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../domain/theme_notifier.dart';
+import '../../domain/backup_service.dart';
 import '../../../auth/domain/auth_notifier.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -90,6 +91,69 @@ class SettingsScreen extends ConsumerWidget {
                     ],
                   ),
                 ],
+              ),
+            ),
+
+            // ── VERİ VE YEDEKLEME ──
+            _buildSection(
+              context,
+              title: 'VERİ VE YEDEKLEME',
+              child: Consumer(
+                builder: (context, ref, child) {
+                  final backupService = ref.watch(backupServiceProvider);
+                  final localTheme = Theme.of(context);
+                  
+                  return Column(
+                    children: [
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(color: localTheme.colorScheme.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
+                          child: Icon(Icons.upload_file_rounded, color: localTheme.colorScheme.primary),
+                        ),
+                        title: const Text('Yedek Oluştur ve Dışa Aktar', style: TextStyle(fontWeight: FontWeight.w600)),
+                        subtitle: const Text('Tüm anıları güvenli bir şekilde kaydeder.', style: TextStyle(fontSize: 12)),
+                        onTap: () async {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Yedek hazırlanıyor, lütfen bekleyin...')),
+                          );
+                          final success = await backupService.exportBackup(ref);
+                          if (success && context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Yedek başarıyla oluşturuldu!')),
+                            );
+                          }
+                        },
+                      ),
+                      const Divider(height: 16, thickness: 0.5),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(color: localTheme.colorScheme.tertiary.withValues(alpha: 0.1), shape: BoxShape.circle),
+                          child: Icon(Icons.download_rounded, color: localTheme.colorScheme.tertiary),
+                        ),
+                        title: const Text('Yedeği Geri Yükle', style: TextStyle(fontWeight: FontWeight.w600)),
+                        subtitle: const Text('Kayıtlı yedekleme dosyasını içeri aktarır.', style: TextStyle(fontSize: 12)),
+                        onTap: () async {
+                          final result = await backupService.importBackup(ref);
+                          if (context.mounted) {
+                            if (result == 'success') {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Yedek başarıyla geri yüklendi! Ana sayfaya dönebilirsiniz.')),
+                              );
+                            } else if (result != 'canceled') {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(result), backgroundColor: Colors.red),
+                              );
+                            }
+                          }
+                        },
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
 

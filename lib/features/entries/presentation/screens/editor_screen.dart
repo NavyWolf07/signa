@@ -151,7 +151,10 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     final service = ref.read(locationWeatherServiceProvider);
 
     try {
+      ref.read(authNotifierProvider.notifier).setBypass(true);
       final result = await service.fetchCurrentData();
+      ref.read(authNotifierProvider.notifier).setBypass(false);
+      
       if (mounted && result != null) {
         setState(() {
           _location = result.location;
@@ -159,6 +162,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
         });
       }
     } catch (e) {
+      ref.read(authNotifierProvider.notifier).setBypass(false);
       if (!mounted) return;
       if (e.toString().contains('LOCATION_SERVICE_DISABLED')) {
         showDialog(
@@ -449,7 +453,11 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                         ],
                       )
                     : FilledButton.icon(
-                        onPressed: audioNotifier.startRecording,
+                        onPressed: () async {
+                          ref.read(authNotifierProvider.notifier).setBypass(true);
+                          await audioNotifier.startRecording();
+                          ref.read(authNotifierProvider.notifier).setBypass(false);
+                        },
                         icon: const Icon(Icons.mic_rounded),
                         label: const Text('Yeni Ses Ekle'),
                         style: FilledButton.styleFrom(
@@ -1275,19 +1283,20 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
       onTap: () async {
         Navigator.pop(context);
         
+        // Kilit ekranını geçici bypass et (İzin menüsü de uygulamayı kilitler, bu yüzden en başta yapmalıyız!)
+        ref.read(authNotifierProvider.notifier).setBypass(true);
+        
         // Kamera için açıkça izin isteyelim
         if (source == ImageSource.camera) {
           final status = await Permission.camera.request();
           if (status.isDenied || status.isPermanentlyDenied) {
+            ref.read(authNotifierProvider.notifier).setBypass(false);
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Kamera izni gereklidir.')));
             }
             return;
           }
         }
-
-        // Kilit ekranını geçici bypass et
-        ref.read(authNotifierProvider.notifier).setBypass(true);
         
         final picker = ImagePicker();
         final pickedFile = await picker.pickImage(source: source, imageQuality: 85);

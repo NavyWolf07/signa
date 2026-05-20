@@ -128,9 +128,17 @@ class EntryRepository {
     return maps.map((map) => DiaryEntry.fromMap(map)).toList();
   }
 
-  // Veritabanı bağlantısını kapat
-  Future<void> close() async {
-    final db = await database;
-    await db.close();
+  // Veritabanının fiziksel dosya yolunu getir (Yedekleme işlemleri için)
+  Future<String> getDatabaseFilePath() async {
+    final dbPath = await getDatabasesPath();
+    return join(dbPath, 'diary.db');
+  }
+
+  // Veritabanı bağlantısını tamamen kapat ve referansı sıfırla (Geri yükleme işlemleri için)
+  Future<void> closeDatabase() async {
+    if (_database != null) {
+      await _database!.close();
+      _database = null;
+    }
   }
 }
