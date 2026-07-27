@@ -1,11 +1,12 @@
-# 🌟 Signa — Kişisel Akıllı Günlük & Anı Uygulaması
+# 🌟 Signa — Dijital Günlüğün, Canlı Hafızan
 
 <p align="center">
-  <img src="web/icons/Icon-512.png" width="128" height="128" alt="Signa Logo" />
+  <img src="assets/logo.png" width="200" alt="Signa Logo" />
 </p>
 
 <p align="center">
-  <b>Signa</b>, duygu ve düşüncelerinizi, ses kayıtlarınızı, fotoğraflarınızı ve konum/hava durumu bilgilerinizi güvenle saklamanızı sağlayan modern, zengin özelliklere sahip kişisel günlük uygulamasıdır.
+  <b>Signa</b> — <i>"Dijital Günlüğün, Canlı Hafızan"</i><br/>
+  Duygu ve düşüncelerinizi, ses kayıtlarınızı, fotoğraflarınızı ve konum/hava durumu bilgilerinizi güvenle saklamanızı sağlayan modern, zengin özelliklere sahip kişisel akıllı günlük uygulaması.
 </p>
 
 <p align="center">
