@@ -1,6 +1,6 @@
 {
-    "name": "diary",
-    "short_name": "diary",
+    "name": "signa",
+    "short_name": "signa",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
